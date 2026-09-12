@@ -1,0 +1,78 @@
+name: Build Maam Malou Question APK
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+
+  build-apk:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Get the project source code.
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+
+      # Install Node.js.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+
+      # Install project dependencies.
+      - name: Install npm dependencies
+        run: npm ci
+
+
+      # Build the Ionic/Vue application.
+      - name: Build Ionic application
+        run: npm run build
+
+
+      # Install Java for Android.
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+
+      # Synchronize Ionic files with Android.
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+
+      # Allow Gradle execution.
+      - name: Make Gradle executable
+        run: chmod +x android/gradlew
+
+
+      # Build the Android Debug APK.
+      - name: Build Android APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+
+      # Rename the generated APK.
+      - name: Rename APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk MaamMalouQuestion.apk
+
+
+      # Upload the APK as a GitHub Actions artifact.
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MaamMalouQuestion-APK
+          path: MaamMalouQuestion.apk
+          if-no-files-found: error
+          retention-days: 30
