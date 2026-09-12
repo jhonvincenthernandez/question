@@ -1,0 +1,7 @@
+{
+  "name": "act-conversation",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
